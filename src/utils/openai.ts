@@ -16,8 +16,19 @@ const ASSISTANT_ID = import.meta.env.VITE_OPENAI_ASSISTANT_ID;
  */
 export async function generateWorkout(request: WorkoutRequest): Promise<Exercise[]> {
   try {
+    // Validate API key and Assistant ID
+    if (!import.meta.env.VITE_OPENAI_API_KEY) {
+      throw new Error('Missing VITE_OPENAI_API_KEY in environment variables');
+    }
+    if (!ASSISTANT_ID) {
+      throw new Error('Missing VITE_OPENAI_ASSISTANT_ID in environment variables');
+    }
+    
+    console.log('Generating workout with request:', request);
+    
     // Create a thread
     const thread = await openai.beta.threads.create();
+    console.log('Thread created:', thread.id);
 
     // Build the message content
     const messageContent = buildPrompt(request);
@@ -32,9 +43,11 @@ export async function generateWorkout(request: WorkoutRequest): Promise<Exercise
     const run = await openai.beta.threads.runs.create(thread.id, {
       assistant_id: ASSISTANT_ID,
     });
+    console.log('Assistant run started:', run.id);
 
     // Poll for completion
     let runStatus = await openai.beta.threads.runs.retrieve(thread.id, run.id);
+    console.log('Run status:', runStatus.status);
     
     while (runStatus.status !== 'completed') {
       if (runStatus.status === 'failed' || runStatus.status === 'cancelled') {
@@ -66,6 +79,24 @@ export async function generateWorkout(request: WorkoutRequest): Promise<Exercise
     return parseWorkoutResponse(responseText);
   } catch (error) {
     console.error('Failed to generate workout:', error);
+    
+    // Provide more detailed error messages
+    if (error instanceof Error) {
+      // Check for common issues
+      if (error.message.includes('API key')) {
+        throw new Error('Invalid API key. Check your .env file.');
+      }
+      if (error.message.includes('assistant')) {
+        throw new Error('Invalid Assistant ID. Check your .env file.');
+      }
+      if (error.message.includes('network') || error.message.includes('fetch')) {
+        throw new Error('Network error. Check your internet connection.');
+      }
+      
+      // Return the actual error message for debugging
+      throw new Error(`Error: ${error.message}`);
+    }
+    
     throw new Error('Could not generate workout. Please try again.');
   }
 }

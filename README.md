@@ -186,6 +186,20 @@ This creates an optimized build in the `dist/` folder ready for deployment.
 - iOS Safari 12+
 - Android Chrome 80+
 
+### Network Access Note
+
+⚠️ **Important for Mobile Testing**: Due to OpenAI API CORS restrictions, the app works best when accessed via `http://localhost:5173`. If you need to test on a mobile device on your local network:
+
+1. **Option 1**: Use [ngrok](https://ngrok.com/) to create an HTTPS tunnel (recommended)
+   ```bash
+   ngrok http 5173
+   ```
+   Then access the ngrok HTTPS URL on your mobile device.
+
+2. **Option 2**: Build and deploy to a hosting service (Vercel, Netlify)
+
+See `TROUBLESHOOTING.md` for detailed information about network access issues.
+
 ## License
 
 MIT
