@@ -163,7 +163,7 @@ function parseWorkoutResponse(responseText: string): Exercise[] {
     // Split by double newlines or periods
     const parts = responseText.split(/\n\n|\. /).filter(p => p.trim());
     
-    parts.forEach((part, index) => {
+    parts.forEach((part) => {
       if (part.trim()) {
         exercises.push({
           id: crypto.randomUUID(),

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import WorkoutForm from './components/WorkoutForm';
 import WorkoutChecklist from './components/WorkoutChecklist';
 import WorkoutHistory from './components/WorkoutHistory';
-import { Workout, WorkoutRequest, Exercise } from './types';
+import { Workout, WorkoutRequest } from './types';
 import { generateWorkout } from './utils/openai';
 import {
   getWorkoutHistory,
