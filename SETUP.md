@@ -68,9 +68,14 @@ Edit `.env` and add your credentials:
 ```
 VITE_OPENAI_API_KEY=sk-...your_key_here
 VITE_OPENAI_ASSISTANT_ID=asst_...your_assistant_id_here
+VITE_SITE_PASSWORD=your_secure_password_here
 ```
 
 ⚠️ **Security Note**: Never commit `.env` to version control. It's already in `.gitignore`.
+
+### About the Site Password
+
+The app now includes a password protection screen. Users will need to enter the password once, and it will be remembered in localStorage. Choose a strong password that you'll share only with authorized users.
 
 ### 4. Run Development Server
 

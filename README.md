@@ -68,6 +68,7 @@ RepIt/
    ```bash
    VITE_OPENAI_API_KEY=your_openai_api_key_here
    VITE_OPENAI_ASSISTANT_ID=your_assistant_id_here
+   VITE_SITE_PASSWORD=your_secure_password_here
    ```
 
 4. **Create an OpenAI Assistant**

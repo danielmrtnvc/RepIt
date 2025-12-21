@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import WorkoutForm from './components/WorkoutForm';
 import WorkoutChecklist from './components/WorkoutChecklist';
 import WorkoutHistory from './components/WorkoutHistory';
+import PasswordScreen from './components/PasswordScreen';
 import { Workout, WorkoutRequest } from './types';
 import { generateWorkout } from './utils/openai';
 import {
@@ -13,17 +14,28 @@ import {
 type View = 'history' | 'form' | 'checklist';
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [view, setView] = useState<View>('history');
   const [currentWorkout, setCurrentWorkout] = useState<Workout | null>(null);
   const [workoutHistory, setWorkoutHistory] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load workout history on mount
+  // Check authentication on mount
   useEffect(() => {
-    const history = getWorkoutHistory();
-    setWorkoutHistory(history.workouts);
+    const authStatus = localStorage.getItem('repit_authenticated');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
   }, []);
+
+  // Load workout history on mount (after authentication)
+  useEffect(() => {
+    if (isAuthenticated) {
+      const history = getWorkoutHistory();
+      setWorkoutHistory(history.workouts);
+    }
+  }, [isAuthenticated]);
 
   // Handle workout generation
   const handleGenerateWorkout = async (request: WorkoutRequest) => {
@@ -137,6 +149,11 @@ export default function App() {
       setError(null);
     }
   };
+
+  // Show password screen if not authenticated
+  if (!isAuthenticated) {
+    return <PasswordScreen onAuthenticated={() => setIsAuthenticated(true)} />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
