@@ -68,6 +68,20 @@ function WorkoutCard({ workout, onClick }: WorkoutCardProps) {
   const completionPercentage = Math.round((completedCount / totalCount) * 100);
   const isFullyCompleted = workout.completedAt !== undefined;
 
+  const formatDuration = (seconds: number) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hrs > 0) {
+      return `${hrs}h ${mins}m`;
+    }
+    if (mins > 0) {
+      return `${mins}m ${secs}s`;
+    }
+    return `${secs}s`;
+  };
+
   return (
     <button
       onClick={onClick}
@@ -118,23 +132,33 @@ function WorkoutCard({ workout, onClick }: WorkoutCardProps) {
         </div>
       </div>
 
-      {/* Completed Badge */}
-      {isFullyCompleted && (
-        <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">
-          <svg
-            className="w-3 h-3"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Completed
-        </div>
-      )}
+      {/* Completed Badge and Duration */}
+      <div className="mt-2 flex items-center justify-between">
+        {isFullyCompleted && (
+          <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">
+            <svg
+              className="w-3 h-3"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            Completed
+          </div>
+        )}
+        {workout.duration !== undefined && workout.duration > 0 && (
+          <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {formatDuration(workout.duration)}
+          </div>
+        )}
+      </div>
     </button>
   );
 }

@@ -10,11 +10,16 @@ const openai = new OpenAI({
 
 const ASSISTANT_ID = import.meta.env.VITE_OPENAI_ASSISTANT_ID;
 
+interface WorkoutGeneration {
+  exercises: Exercise[];
+  quote: string;
+}
+
 /**
  * Generate a workout using OpenAI Assistant
- * Returns a list of exercises
+ * Returns a list of exercises and a motivational quote
  */
-export async function generateWorkout(request: WorkoutRequest): Promise<Exercise[]> {
+export async function generateWorkout(request: WorkoutRequest): Promise<WorkoutGeneration> {
   try {
     // Validate API key and Assistant ID
     if (!import.meta.env.VITE_OPENAI_API_KEY) {
@@ -75,7 +80,7 @@ export async function generateWorkout(request: WorkoutRequest): Promise<Exercise
 
     const responseText = content.text.value;
 
-    // Parse the response into exercises
+    // Parse the response into exercises and quote
     return parseWorkoutResponse(responseText);
   } catch (error) {
     console.error('Failed to generate workout:', error);
@@ -115,17 +120,47 @@ function buildPrompt(request: WorkoutRequest): string {
     prompt += `\n\nAdditional context: ${request.context}`;
   }
 
-  prompt += '\n\nPlease provide a structured workout with exercises. For each exercise include: name, sets, reps (or duration), and any relevant notes.';
+  prompt += '\n\nPlease provide:\n1. A structured workout with exercises (each with name, sets, reps or duration, and any relevant notes)\n2. An inspiring strength/warrior/philosophy/sigma quote to motivate the workout';
   
   return prompt;
 }
 
 /**
- * Parse the assistant's response into Exercise objects
+ * Parse the assistant's response into Exercise objects and quote
  * This is a simple parser - assumes the assistant returns structured data
  * In production, you'd want the assistant to return JSON
  */
-function parseWorkoutResponse(responseText: string): Exercise[] {
+function parseWorkoutResponse(responseText: string): WorkoutGeneration {
+  // Try to extract a quote (look for quoted text or lines with "Quote:" prefix)
+  let quote = '';
+  const quoteMatch = responseText.match(/(?:Quote:|Motivation:|"([^"]+)")/i);
+  if (quoteMatch) {
+    // Find the actual quote text
+    const quoteSection = responseText.match(/"([^"]+)"/);
+    if (quoteSection) {
+      quote = quoteSection[1];
+    } else {
+      // Try to find quote after "Quote:" or "Motivation:"
+      const afterLabel = responseText.match(/(?:Quote:|Motivation:)\s*(.+?)(?:\n|$)/i);
+      if (afterLabel) {
+        quote = afterLabel[1].trim();
+      }
+    }
+  }
+  
+  // Default quotes if none found
+  const defaultQuotes = [
+    "The only bad workout is the one that didn't happen.",
+    "Strength does not come from physical capacity. It comes from an indomitable will.",
+    "The pain you feel today will be the strength you feel tomorrow.",
+    "Success isn't always about greatness. It's about consistency.",
+    "Your body can stand almost anything. It's your mind you have to convince.",
+  ];
+  
+  if (!quote) {
+    quote = defaultQuotes[Math.floor(Math.random() * defaultQuotes.length)];
+  }
+  
   // For MVP, we'll do simple parsing
   // Assume format like:
   // 1. Exercise Name - 3 sets x 10 reps
@@ -161,7 +196,7 @@ function parseWorkoutResponse(responseText: string): Exercise[] {
   // If parsing failed, create a simple fallback
   if (exercises.length === 0) {
     // Split by double newlines or periods
-    const parts = responseText.split(/\n\n|\. /).filter(p => p.trim());
+    const parts = responseText.split(/\n\n|\. /).filter(p => p.trim() && !p.includes('Quote') && !p.includes('"'));
     
     parts.forEach((part) => {
       if (part.trim()) {
@@ -174,6 +209,6 @@ function parseWorkoutResponse(responseText: string): Exercise[] {
     });
   }
   
-  return exercises;
+  return { exercises, quote };
 }
 

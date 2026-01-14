@@ -41,7 +41,28 @@ export interface Workout {
   equipment: Equipment[];
   context?: string;
   exercises: Exercise[];
+  startedAt?: string; // ISO string when user starts the workout
   completedAt?: string; // ISO string when all exercises are done
+  duration?: number; // Duration in seconds
+  quote?: string; // Motivational quote
+}
+
+export interface UserGoals {
+  benchPress: number; // in lbs
+  militaryPress: number; // in lbs
+  deadlift: number; // in lbs
+  bicepCurl: number; // in lbs
+  squat: number; // in lbs
+  plank: number; // in seconds
+}
+
+export interface UserProgress {
+  benchPress: number; // in lbs
+  militaryPress: number; // in lbs
+  deadlift: number; // in lbs
+  bicepCurl: number; // in lbs
+  squat: number; // in lbs
+  plank: number; // in seconds
 }
 
 export interface WorkoutHistory {

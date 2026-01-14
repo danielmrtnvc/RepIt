@@ -1,8 +1,10 @@
 // localStorage utility for workout persistence
 
-import { Workout, WorkoutHistory } from '../types';
+import { Workout, WorkoutHistory, UserGoals, UserProgress } from '../types';
 
 const STORAGE_KEY = 'repit_workout_history';
+const GOALS_STORAGE_KEY = 'repit_user_goals';
+const PROGRESS_STORAGE_KEY = 'repit_user_progress';
 
 /**
  * Get all workouts from localStorage
@@ -73,6 +75,92 @@ export function deleteWorkout(workoutId: string): void {
   } catch (error) {
     console.error('Failed to delete workout:', error);
     throw new Error('Could not delete workout');
+  }
+}
+
+/**
+ * Get user goals from localStorage
+ */
+export function getUserGoals(): UserGoals {
+  try {
+    const data = localStorage.getItem(GOALS_STORAGE_KEY);
+    if (!data) {
+      // Default goals
+      return {
+        benchPress: 200,
+        militaryPress: 135,
+        deadlift: 300,
+        bicepCurl: 50,
+        squat: 225,
+        plank: 120,
+      };
+    }
+    return JSON.parse(data) as UserGoals;
+  } catch (error) {
+    console.error('Failed to load user goals:', error);
+    return {
+      benchPress: 200,
+      militaryPress: 135,
+      deadlift: 300,
+      bicepCurl: 50,
+      squat: 225,
+      plank: 120,
+    };
+  }
+}
+
+/**
+ * Save user goals to localStorage
+ */
+export function saveUserGoals(goals: UserGoals): void {
+  try {
+    localStorage.setItem(GOALS_STORAGE_KEY, JSON.stringify(goals));
+  } catch (error) {
+    console.error('Failed to save user goals:', error);
+    throw new Error('Could not save user goals');
+  }
+}
+
+/**
+ * Get user progress from localStorage
+ */
+export function getUserProgress(): UserProgress {
+  try {
+    const data = localStorage.getItem(PROGRESS_STORAGE_KEY);
+    if (!data) {
+      // Default progress (starting point)
+      return {
+        benchPress: 100,
+        militaryPress: 65,
+        deadlift: 150,
+        bicepCurl: 25,
+        squat: 115,
+        plank: 60,
+      };
+    }
+    return JSON.parse(data) as UserProgress;
+  } catch (error) {
+    console.error('Failed to load user progress:', error);
+    return {
+      benchPress: 100,
+      militaryPress: 65,
+      deadlift: 150,
+      bicepCurl: 25,
+      squat: 115,
+      plank: 60,
+    };
+  }
+}
+
+/**
+ * Save user progress to localStorage
+ */
+export function saveUserProgress(progress: UserProgress): void {
+  try {
+    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+  } catch (error) {
+    console.error('Failed to save user progress:', error);
+    throw new Error('Could not save user progress');
   }
 }
 

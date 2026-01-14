@@ -3,12 +3,18 @@ import WorkoutForm from './components/WorkoutForm';
 import WorkoutChecklist from './components/WorkoutChecklist';
 import WorkoutHistory from './components/WorkoutHistory';
 import PasswordScreen from './components/PasswordScreen';
-import { Workout, WorkoutRequest } from './types';
+import StatsCards from './components/StatsCards';
+import StrengthRadar from './components/StrengthRadar';
+import { Workout, WorkoutRequest, UserGoals, UserProgress } from './types';
 import { generateWorkout } from './utils/openai';
 import {
   getWorkoutHistory,
   saveWorkout,
   updateWorkout,
+  getUserGoals,
+  saveUserGoals,
+  getUserProgress,
+  saveUserProgress,
 } from './utils/storage';
 
 type View = 'history' | 'form' | 'checklist';
@@ -20,6 +26,8 @@ export default function App() {
   const [workoutHistory, setWorkoutHistory] = useState<Workout[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userGoals, setUserGoals] = useState<UserGoals | null>(null);
+  const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
 
   // Check authentication on mount
   useEffect(() => {
@@ -29,11 +37,17 @@ export default function App() {
     }
   }, []);
 
-  // Load workout history on mount (after authentication)
+  // Load workout history and user data on mount (after authentication)
   useEffect(() => {
     if (isAuthenticated) {
       const history = getWorkoutHistory();
       setWorkoutHistory(history.workouts);
+      
+      const goals = getUserGoals();
+      setUserGoals(goals);
+      
+      const progress = getUserProgress();
+      setUserProgress(progress);
     }
   }, [isAuthenticated]);
 
@@ -43,7 +57,7 @@ export default function App() {
     setError(null);
 
     try {
-      const exercises = await generateWorkout(request);
+      const { exercises, quote } = await generateWorkout(request);
 
       const newWorkout: Workout = {
         id: crypto.randomUUID(),
@@ -52,6 +66,7 @@ export default function App() {
         equipment: request.equipment,
         context: request.context,
         exercises,
+        quote,
       };
 
       // Save to localStorage
@@ -99,6 +114,25 @@ export default function App() {
     );
   };
 
+  // Handle start workout
+  const handleStartWorkout = () => {
+    if (!currentWorkout) return;
+
+    const startedWorkout: Workout = {
+      ...currentWorkout,
+      startedAt: new Date().toISOString(),
+    };
+
+    // Update localStorage
+    updateWorkout(currentWorkout.id, startedWorkout);
+
+    // Update state
+    setCurrentWorkout(startedWorkout);
+    setWorkoutHistory((prev) =>
+      prev.map((w) => (w.id === currentWorkout.id ? startedWorkout : w))
+    );
+  };
+
   // Handle finish workout
   const handleFinishWorkout = () => {
     if (!currentWorkout) return;
@@ -110,9 +144,15 @@ export default function App() {
       return;
     }
 
+    const completedAt = new Date().toISOString();
+    const startTime = currentWorkout.startedAt ? new Date(currentWorkout.startedAt).getTime() : new Date().getTime();
+    const endTime = new Date(completedAt).getTime();
+    const duration = Math.floor((endTime - startTime) / 1000); // duration in seconds
+
     const completedWorkout: Workout = {
       ...currentWorkout,
-      completedAt: new Date().toISOString(),
+      completedAt,
+      duration,
     };
 
     // Update localStorage
@@ -148,6 +188,18 @@ export default function App() {
       setCurrentWorkout(null);
       setError(null);
     }
+  };
+
+  // Handle updating user goals
+  const handleUpdateGoals = (goals: UserGoals) => {
+    saveUserGoals(goals);
+    setUserGoals(goals);
+  };
+
+  // Handle updating user progress
+  const handleUpdateProgress = (progress: UserProgress) => {
+    saveUserProgress(progress);
+    setUserProgress(progress);
   };
 
   // Show password screen if not authenticated
@@ -203,11 +255,33 @@ export default function App() {
 
         {/* View Routing */}
         {view === 'history' && (
-          <WorkoutHistory
-            workouts={workoutHistory}
-            onSelectWorkout={handleSelectWorkout}
-            onNewWorkout={handleNewWorkout}
-          />
+          <>
+            {/* Stats Cards */}
+            {workoutHistory.length > 0 && (
+              <div className="mb-6">
+                <StatsCards workouts={workoutHistory} />
+              </div>
+            )}
+
+            {/* Strength Radar Chart */}
+            {userGoals && userProgress && (
+              <div className="mb-6">
+                <StrengthRadar
+                  goals={userGoals}
+                  progress={userProgress}
+                  onUpdateGoals={handleUpdateGoals}
+                  onUpdateProgress={handleUpdateProgress}
+                />
+              </div>
+            )}
+
+            {/* Workout History */}
+            <WorkoutHistory
+              workouts={workoutHistory}
+              onSelectWorkout={handleSelectWorkout}
+              onNewWorkout={handleNewWorkout}
+            />
+          </>
         )}
 
         {view === 'form' && (
@@ -224,6 +298,7 @@ export default function App() {
             workout={currentWorkout}
             onExerciseToggle={handleExerciseToggle}
             onFinish={handleFinishWorkout}
+            onStart={handleStartWorkout}
           />
         )}
       </main>
