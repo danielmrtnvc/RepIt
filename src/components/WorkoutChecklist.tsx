@@ -6,6 +6,7 @@ interface WorkoutChecklistProps {
   onExerciseToggle: (exerciseId: string) => void;
   onFinish: () => void;
   onStart: () => void;
+  onDelete: () => void;
 }
 
 export default function WorkoutChecklist({
@@ -13,6 +14,7 @@ export default function WorkoutChecklist({
   onExerciseToggle,
   onFinish,
   onStart,
+  onDelete,
 }: WorkoutChecklistProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const completedCount = workout.exercises.filter((e) => e.completed).length;
@@ -86,16 +88,29 @@ export default function WorkoutChecklist({
 
       {/* Start Button or Exercise List */}
       {!hasStarted ? (
-        <button
-          onClick={onStart}
-          className="w-full py-6 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Start Workout
-        </button>
+        <>
+          <button
+            onClick={onStart}
+            className="w-full py-6 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Start Workout
+          </button>
+          
+          {/* Delete Button */}
+          <button
+            onClick={onDelete}
+            className="w-full py-3 bg-red-50 text-red-600 rounded-lg font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-2 border-2 border-red-200"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Delete Workout
+          </button>
+        </>
       ) : (
         <>
           {/* Exercise List */}
@@ -121,6 +136,19 @@ export default function WorkoutChecklist({
           >
             {allCompleted ? 'Finish Workout' : 'Complete All Exercises First'}
           </button>
+
+          {/* Delete Button (for workouts in progress) */}
+          {!workout.completedAt && (
+            <button
+              onClick={onDelete}
+              className="w-full py-3 bg-red-50 text-red-600 rounded-lg font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-2 border-2 border-red-200"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Delete Workout
+            </button>
+          )}
         </>
       )}
     </div>

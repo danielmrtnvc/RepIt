@@ -11,6 +11,7 @@ import {
   getWorkoutHistory,
   saveWorkout,
   updateWorkout,
+  deleteWorkout,
   getUserGoals,
   saveUserGoals,
   getUserProgress,
@@ -202,6 +203,31 @@ export default function App() {
     setUserProgress(progress);
   };
 
+  // Handle delete workout with confirmation
+  const handleDeleteWorkout = () => {
+    if (!currentWorkout) return;
+
+    const confirmDelete = window.confirm(
+      'Are you sure you want to delete this workout? This action cannot be undone.'
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      // Delete from localStorage
+      deleteWorkout(currentWorkout.id);
+
+      // Update state
+      setWorkoutHistory((prev) => prev.filter((w) => w.id !== currentWorkout.id));
+
+      // Navigate back to history
+      setCurrentWorkout(null);
+      setView('history');
+    } catch (error) {
+      setError('Failed to delete workout. Please try again.');
+    }
+  };
+
   // Show password screen if not authenticated
   if (!isAuthenticated) {
     return <PasswordScreen onAuthenticated={() => setIsAuthenticated(true)} />;
@@ -299,6 +325,7 @@ export default function App() {
             onExerciseToggle={handleExerciseToggle}
             onFinish={handleFinishWorkout}
             onStart={handleStartWorkout}
+            onDelete={handleDeleteWorkout}
           />
         )}
       </main>
