@@ -17,9 +17,10 @@ export default function WorkoutChecklist({
   onDelete,
 }: WorkoutChecklistProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
+  const isSportsWorkout = workout.workoutType === 'sports';
   const completedCount = workout.exercises.filter((e) => e.completed).length;
   const totalCount = workout.exercises.length;
-  const allCompleted = completedCount === totalCount;
+  const allCompleted = isSportsWorkout || completedCount === totalCount;
   const hasStarted = workout.startedAt !== undefined;
 
   // Timer effect
@@ -65,7 +66,7 @@ export default function WorkoutChecklist({
         )}
         
         {/* Timer Display */}
-        {hasStarted && (
+        {hasStarted && !isSportsWorkout && (
           <div className="mb-3 text-center">
             <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full shadow-sm">
               <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -76,68 +77,46 @@ export default function WorkoutChecklist({
           </div>
         )}
 
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">
-            {completedCount} / {totalCount} exercises completed
-          </span>
-          <span className="text-sm font-medium text-blue-600">
-            {Math.round((completedCount / totalCount) * 100)}%
-          </span>
-        </div>
+        {!isSportsWorkout && (
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">
+              {completedCount} / {totalCount} exercises completed
+            </span>
+            <span className="text-sm font-medium text-blue-600">
+              {Math.round((completedCount / totalCount) * 100)}%
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Start Button or Exercise List */}
-      {!hasStarted ? (
-        <>
-          <button
-            onClick={onStart}
-            className="w-full py-6 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Start Workout
-          </button>
-          
-          {/* Delete Button */}
-          <button
-            onClick={onDelete}
-            className="w-full py-3 bg-red-50 text-red-600 rounded-lg font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-2 border-2 border-red-200"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            Delete Workout
-          </button>
-        </>
-      ) : (
-        <>
-          {/* Exercise List */}
-          <div className="space-y-3">
-            {workout.exercises.map((exercise) => (
-              <ExerciseItem
-                key={exercise.id}
-                exercise={exercise}
-                onToggle={() => onExerciseToggle(exercise.id)}
-              />
-            ))}
+      {/* Sports Workout Display */}
+      {isSportsWorkout ? (
+        <div className="space-y-4">
+          {/* Sports Description */}
+          <div className="bg-white p-5 rounded-lg border-2 border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Activity Description
+            </h3>
+            <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">{workout.sportsDescription}</p>
           </div>
 
-          {/* Finish Button */}
-          <button
-            onClick={onFinish}
-            disabled={!allCompleted}
-            className={`w-full py-4 rounded-lg font-semibold transition-colors ${
-              allCompleted
-                ? 'bg-green-600 text-white hover:bg-green-700'
-                : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-            }`}
-          >
-            {allCompleted ? 'Finish Workout' : 'Complete All Exercises First'}
-          </button>
+          {/* Mark as Complete Button */}
+          {!workout.completedAt && (
+            <button
+              onClick={onFinish}
+              className="w-full py-4 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Mark as Complete
+            </button>
+          )}
 
-          {/* Delete Button (for workouts in progress) */}
+          {/* Delete Button */}
           {!workout.completedAt && (
             <button
               onClick={onDelete}
@@ -146,8 +125,86 @@ export default function WorkoutChecklist({
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
-              Delete Workout
+              Delete Activity
             </button>
+          )}
+
+          {/* Completed Message */}
+          {workout.completedAt && (
+            <div className="bg-green-50 p-4 rounded-lg border-2 border-green-200 text-center">
+              <svg className="w-12 h-12 text-green-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-green-800 font-semibold">Activity Completed!</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Regular Workout Display */
+        <>
+          {!hasStarted ? (
+            <>
+              <button
+                onClick={onStart}
+                className="w-full py-6 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Start Workout
+              </button>
+              
+              {/* Delete Button */}
+              <button
+                onClick={onDelete}
+                className="w-full py-3 bg-red-50 text-red-600 rounded-lg font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-2 border-2 border-red-200"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete Workout
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Exercise List */}
+              <div className="space-y-3">
+                {workout.exercises.map((exercise) => (
+                  <ExerciseItem
+                    key={exercise.id}
+                    exercise={exercise}
+                    onToggle={() => onExerciseToggle(exercise.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Finish Button */}
+              <button
+                onClick={onFinish}
+                disabled={!allCompleted}
+                className={`w-full py-4 rounded-lg font-semibold transition-colors ${
+                  allCompleted
+                    ? 'bg-green-600 text-white hover:bg-green-700'
+                    : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                }`}
+              >
+                {allCompleted ? 'Finish Workout' : 'Complete All Exercises First'}
+              </button>
+
+              {/* Delete Button (for workouts in progress) */}
+              {!workout.completedAt && (
+                <button
+                  onClick={onDelete}
+                  className="w-full py-3 bg-red-50 text-red-600 rounded-lg font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-2 border-2 border-red-200"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete Workout
+                </button>
+              )}
+            </>
           )}
         </>
       )}

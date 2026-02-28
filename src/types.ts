@@ -8,7 +8,8 @@ export type WorkoutType =
   | 'HIIT'
   | 'arms'
   | 'full body'
-  | 'stretching';
+  | 'stretching'
+  | 'sports';
 
 export type Equipment =
   | 'bodyweight'
@@ -22,6 +23,7 @@ export interface WorkoutRequest {
   context?: string;
   workoutType: WorkoutType;
   equipment: Equipment[];
+  sportsDescription?: string; // For sports workouts
 }
 
 export interface Exercise {
@@ -45,6 +47,7 @@ export interface Workout {
   completedAt?: string; // ISO string when all exercises are done
   duration?: number; // Duration in seconds
   quote?: string; // Motivational quote
+  sportsDescription?: string; // For sports workouts - description of activity
 }
 
 export interface UserGoals {

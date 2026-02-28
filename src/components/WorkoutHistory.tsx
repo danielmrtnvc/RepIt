@@ -63,9 +63,10 @@ interface WorkoutCardProps {
 
 function WorkoutCard({ workout, onClick }: WorkoutCardProps) {
   const date = new Date(workout.date);
+  const isSportsWorkout = workout.workoutType === 'sports';
   const completedCount = workout.exercises.filter((e) => e.completed).length;
   const totalCount = workout.exercises.length;
-  const completionPercentage = Math.round((completedCount / totalCount) * 100);
+  const completionPercentage = isSportsWorkout ? 100 : Math.round((completedCount / totalCount) * 100);
   const isFullyCompleted = workout.completedAt !== undefined;
 
   const formatDuration = (seconds: number) => {
@@ -101,36 +102,44 @@ function WorkoutCard({ workout, onClick }: WorkoutCardProps) {
         </span>
       </div>
 
-      {/* Equipment */}
-      {workout.equipment.length > 0 && (
-        <p className="text-xs text-gray-600 mb-2">
-          {workout.equipment.join(', ')}
+      {/* Equipment or Sports Description Preview */}
+      {isSportsWorkout && workout.sportsDescription ? (
+        <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+          {workout.sportsDescription}
         </p>
+      ) : (
+        workout.equipment.length > 0 && (
+          <p className="text-xs text-gray-600 mb-2">
+            {workout.equipment.join(', ')}
+          </p>
+        )
       )}
 
       {/* Progress Bar */}
-      <div className="space-y-1">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-gray-600">
-            {completedCount} / {totalCount} exercises
-          </span>
-          <span
-            className={`font-medium ${
-              isFullyCompleted ? 'text-green-600' : 'text-blue-600'
-            }`}
-          >
-            {completionPercentage}%
-          </span>
+      {!isSportsWorkout && (
+        <div className="space-y-1">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-gray-600">
+              {completedCount} / {totalCount} exercises
+            </span>
+            <span
+              className={`font-medium ${
+                isFullyCompleted ? 'text-green-600' : 'text-blue-600'
+              }`}
+            >
+              {completionPercentage}%
+            </span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className={`h-2 rounded-full transition-all ${
+                isFullyCompleted ? 'bg-green-500' : 'bg-blue-500'
+              }`}
+              style={{ width: `${completionPercentage}%` }}
+            />
+          </div>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className={`h-2 rounded-full transition-all ${
-              isFullyCompleted ? 'bg-green-500' : 'bg-blue-500'
-            }`}
-            style={{ width: `${completionPercentage}%` }}
-          />
-        </div>
-      </div>
+      )}
 
       {/* Completed Badge and Duration */}
       <div className="mt-2 flex items-center justify-between">

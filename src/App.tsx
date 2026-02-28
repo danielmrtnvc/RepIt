@@ -58,27 +58,51 @@ export default function App() {
     setError(null);
 
     try {
-      const { exercises, quote } = await generateWorkout(request);
+      // Handle sports workouts differently - no OpenAI generation
+      if (request.workoutType === 'sports') {
+        const sportsWorkout: Workout = {
+          id: crypto.randomUUID(),
+          date: new Date().toISOString(),
+          workoutType: request.workoutType,
+          equipment: [],
+          context: request.context,
+          exercises: [], // No exercises for sports workouts
+          sportsDescription: request.sportsDescription,
+        };
 
-      const newWorkout: Workout = {
-        id: crypto.randomUUID(),
-        date: new Date().toISOString(),
-        workoutType: request.workoutType,
-        equipment: request.equipment,
-        context: request.context,
-        exercises,
-        quote,
-      };
+        // Save to localStorage
+        saveWorkout(sportsWorkout);
 
-      // Save to localStorage
-      saveWorkout(newWorkout);
+        // Update state
+        setCurrentWorkout(sportsWorkout);
+        setWorkoutHistory((prev) => [sportsWorkout, ...prev]);
 
-      // Update state
-      setCurrentWorkout(newWorkout);
-      setWorkoutHistory((prev) => [newWorkout, ...prev]);
+        // Navigate to checklist view
+        setView('checklist');
+      } else {
+        // Generate workout using OpenAI for other workout types
+        const { exercises, quote } = await generateWorkout(request);
 
-      // Navigate to checklist view
-      setView('checklist');
+        const newWorkout: Workout = {
+          id: crypto.randomUUID(),
+          date: new Date().toISOString(),
+          workoutType: request.workoutType,
+          equipment: request.equipment,
+          context: request.context,
+          exercises,
+          quote,
+        };
+
+        // Save to localStorage
+        saveWorkout(newWorkout);
+
+        // Update state
+        setCurrentWorkout(newWorkout);
+        setWorkoutHistory((prev) => [newWorkout, ...prev]);
+
+        // Navigate to checklist view
+        setView('checklist');
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -138,17 +162,23 @@ export default function App() {
   const handleFinishWorkout = () => {
     if (!currentWorkout) return;
 
-    const allCompleted = currentWorkout.exercises.every((e) => e.completed);
+    const isSportsWorkout = currentWorkout.workoutType === 'sports';
+    const allCompleted = isSportsWorkout || currentWorkout.exercises.every((e) => e.completed);
 
-    if (!allCompleted) {
+    if (!allCompleted && !isSportsWorkout) {
       alert('Please complete all exercises before finishing the workout.');
       return;
     }
 
     const completedAt = new Date().toISOString();
-    const startTime = currentWorkout.startedAt ? new Date(currentWorkout.startedAt).getTime() : new Date().getTime();
-    const endTime = new Date(completedAt).getTime();
-    const duration = Math.floor((endTime - startTime) / 1000); // duration in seconds
+    let duration: number | undefined;
+
+    // Only calculate duration for non-sports workouts with a start time
+    if (!isSportsWorkout && currentWorkout.startedAt) {
+      const startTime = new Date(currentWorkout.startedAt).getTime();
+      const endTime = new Date(completedAt).getTime();
+      duration = Math.floor((endTime - startTime) / 1000); // duration in seconds
+    }
 
     const completedWorkout: Workout = {
       ...currentWorkout,
